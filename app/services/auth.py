@@ -9,7 +9,7 @@ from fastapi import Depends, status, HTTPException
 from database.db import get_db
 from services.users import UserService
 from logger.logger import build_logger
-from schemas import UserModel
+from schemas import UserModel, UserRole
 from redis import Redis
 from database.cache import get_redis
 from services.cache import CacheService
@@ -124,3 +124,8 @@ async def get_current_user(
         await cache.set_user(token, user, exp)
 
     return user
+
+def get_current_admin_user(current_user: UserModel = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return current_user

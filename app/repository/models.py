@@ -27,3 +27,4 @@ class User(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())
     avatar: Mapped[str | None] = mapped_column(String(255), nullable=True)
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    role: Mapped[str] = mapped_column(String(255), default="user", nullable=False)

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional, List
+from enum import Enum
 
 
 class ContactBase(BaseModel):
@@ -40,6 +41,9 @@ class ErrorContent(BaseModel):
 class ErrorsContent(BaseModel):
     errors: List[ErrorContent]
 
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 class UserCreate(BaseModel):
     username: str = Field(description="User name", min_length=3, max_length=100)
@@ -49,6 +53,7 @@ class UserCreate(BaseModel):
         description="User email",
     )
     password: str = Field(description="User password", min_length=5, max_length=30)
+    role: UserRole
 
 class ResetPasswordRequest(BaseModel):
     email: str = Field(
@@ -66,6 +71,7 @@ class UserModel(BaseModel):
     username: str 
     email: str
     avatar: str | None
+    role: UserRole
 
     model_config = ConfigDict(from_attributes=True, validate_assignment=True)
 

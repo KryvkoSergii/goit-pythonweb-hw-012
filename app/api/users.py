@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, UploadFile, File
 from schemas import UserModel, ErrorsContent
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from services.auth import get_current_user
+from services.auth import get_current_user, get_current_admin_user
 from database.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from conf.config import settings
@@ -65,7 +65,7 @@ async def login_user(
 )
 async def update_avatar_user(
     file: UploadFile = File(),
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
