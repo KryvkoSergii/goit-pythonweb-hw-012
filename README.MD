@@ -1,4 +1,4 @@
-# Python web app with AuthN and AuthZ PoC
+# Python web app with AuthN and AuthZ
 
 ## Description
 The application is designed for securely storing contacts. Each user can create and manage their own contacts. The interface is provided by Swagger UI, allowing users to send authenticated requests.
@@ -8,9 +8,11 @@ The application is designed for securely storing contacts. Each user can create 
 * Email confirmation
 * Avatar management
 * User authentication via username and password
+* Reset user password flow
 * Secure creation, updating, and deletion of contacts
 * Contact search based on specific criteria
 * Retrieval of contacts with birthdays in the next 7 days
+* Caching token using Redis
 
 By default Swagger UI accessible:
 ```
@@ -32,7 +34,7 @@ http://localhost:8000/docs#/
 ## Checkout repo 
 To clone the repository, use the following command:
 ```bash
-git clone https://github.com/yourusername/goit-pythonweb-hw-10.git
+git clone https://github.com/yourusername/goit-pythonweb-hw-012.git
 ```
 
 ## Run application locally
@@ -59,7 +61,11 @@ poetry run .\app\main.py
 ### Run postgres for local setup
 Start postgres database:
 ```bash
-docker run --name postgres-goit-pythonweb-hw-10 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw10 -d postgres
+docker run --name postgres-goit-pythonweb-hw-12 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw12 -d postgres
+```
+Start Redis cache:
+```bash
+docker run --name redis-goit-pythonweb-hw-12 -p 6379:6379 -d redis
 ```
 
 ## Run application with docker compose
