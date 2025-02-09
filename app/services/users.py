@@ -57,6 +57,13 @@ class UserService:
         )
         found = await self.__user_repository.create_user(user)
         return self.__transform_user_model(found)
+    
+    async def update_password(self, username: str, password: str)  -> UserModel:
+        self.__logger.info(f"Update password for: '{username}'")
+        found = await self.get_user_entity_by_username(username)
+        found.hashed_password = get_password_hash(password)
+        await self.__user_repository.update(found)
+        return self.__transform_user_model(found)
 
     async def get_user_by_username(self, username: str) -> UserModel | None:
         """

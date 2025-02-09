@@ -20,6 +20,12 @@ class CacheService:
             self.logger.debug(f"no user found in cache")
             return None
 
-    def set_user(self, token: str, user: UserModel, evict: int):
-        self.logger.debug(f"set user '{user.username}' to cache. Expiration is {evict}")
-        self.redis_connection.set(token, json.dump(user), exat=evict)
+    async def set_user(self, token: str, user: UserModel, evict: int):
+        serialized = user.model_dump()
+        serialized = json.dumps(serialized)
+        self.logger.debug(f"set user '{user.username}' to cache. Expiration is: {evict} object: {serialized}")
+        await self.redis_connection.set(token,serialized, exat=evict)
+
+    async def remove_user(self, token: str):
+        self.logger.debug(f"remove cache by token")
+        self.redis_connection.delete(token)

@@ -21,7 +21,7 @@ conf = ConnectionConfig(
 )
 
 
-def send_email(
+def send_confirmation_email(
     background_tasks: BackgroundTasks,
     logger: Logger,
     email: str,
@@ -133,3 +133,29 @@ def get_email_from_token(token: str) -> str:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Incorrect verification token",
         )
+    
+def send_reset_password(
+    background_tasks: BackgroundTasks,
+    logger: Logger,
+    email: str,
+    username: str,
+    host: str
+):
+    token_verification = create_email_token({"sub": email})
+    message = MessageSchema(
+        subject="Reset password",
+        recipients=[email],
+        template_body={
+            "host": host,
+            "username": username,
+            "token": token_verification,
+        },
+        subtype=MessageType.html,
+    )
+
+    fm = FastMail(conf)
+    background_tasks.add_task(
+        fm.send_message, message, template_name="reset_password_email.html"
+    )
+    logger.debug(
+        f"Reset password for {email} has been placed to the queue")

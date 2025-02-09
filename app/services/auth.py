@@ -96,15 +96,18 @@ async def get_current_user(
     iat: int = payload.get("iat")
     exp: int = payload.get("exp")
     now = time.time()
-
+    
+    cache = None
     if iat > now or now > exp:
+        cache = CacheService(logger, cache_db)
+        cache.remove_user(token=token)
         raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token is expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
-    cache = CacheService(logger, cache_db)
+    
+    cache = cache if cache else CacheService(logger, cache_db)
     user = await cache.get_user(token=token)
 
     if not user:

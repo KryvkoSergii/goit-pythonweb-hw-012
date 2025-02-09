@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException, BackgroundTasks, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from services.users import UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.db import get_db
@@ -9,12 +11,20 @@ from schemas import (
     ErrorsContent,
     ConfirmationResponse,
     ConfirmationRequest,
+    ResetPasswordRequest,
+    ChangePasswordRequest,
 )
 from logger.logger import build_logger
 from fastapi.security import OAuth2PasswordRequestForm
 from services.hash import verify_password
 from services.auth import create_access_token
-from services.email import send_email, get_email_from_token
+from services.email import (
+    send_confirmation_email,
+    get_email_from_token,
+    send_reset_password,
+)
+import traceback
+from pathlib import Path
 
 logger = build_logger("auth", "DEBUG")
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -79,7 +89,7 @@ async def register_user(
 
     new_user = await user_service.create_user(user_data)
 
-    send_email(
+    send_confirmation_email(
         background_tasks, logger, new_user.email, new_user.username, request.base_url
     )
     return new_user
@@ -180,7 +190,7 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
         500: {"model": ErrorsContent},
     },
 )
-async def request_email(
+async def confirm_email(
     body: ConfirmationRequest,
     background_tasks: BackgroundTasks,
     request: Request,
@@ -223,7 +233,87 @@ async def request_email(
             message=f"The email {body.email} is already confirmed"
         )
     if user:
-        send_email(
+        send_confirmation_email(
             background_tasks, logger, user.email, user.username, request.base_url
         )
     return ConfirmationResponse(message=f"Please check your email for confirmation")
+
+
+@router.post(
+    "/reset_password",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ConfirmationResponse,
+    responses={
+        400: {"model": ErrorsContent},
+        422: {"model": ErrorsContent},
+        500: {"model": ErrorsContent},
+    },
+)
+async def reset_password(
+    body: ResetPasswordRequest,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    user_service = UserService(logger, db)
+    user = await user_service.get_user_by_email(body.email)
+    if user:
+        send_reset_password(
+            background_tasks, logger, user.email, user.username, request.base_url
+        )
+    return ConfirmationResponse(message=f"Please check your email for reset password")
+
+
+@router.get("/reseted_password/{token}", response_class=HTMLResponse)
+async def get_reseted_password(
+    token: str, request: Request, db: AsyncSession = Depends(get_db)
+):
+    try:
+        email = get_email_from_token(token)
+        print(email)
+        user_service = UserService(logger, db)
+        user = await user_service.get_user_entity_by_email(email)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="User is not found"
+            )
+        templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
+        return templates.TemplateResponse(
+            "reset_password_page.html",
+            {
+                "request": request,
+                "token": token,
+                "host": request.base_url,
+                "username": user.username,
+            },
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise e
+
+
+@router.post(
+    "/reseted_password",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ConfirmationResponse,
+    responses={
+        400: {"model": ErrorsContent},
+        422: {"model": ErrorsContent},
+        500: {"model": ErrorsContent},
+    },
+)
+async def perform_reseted_password(
+    body: ChangePasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    email = get_email_from_token(body.token)
+    user_service = UserService(logger, db)
+    user = await user_service.get_user_entity_by_email(email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User is not found"
+        )
+    await user_service.update_password(user.username, body.password)
+    return ConfirmationResponse(
+        message=f"The password for {user.username} has been updated"
+    )

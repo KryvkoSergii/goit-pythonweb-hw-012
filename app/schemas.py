@@ -50,6 +50,16 @@ class UserCreate(BaseModel):
     )
     password: str = Field(description="User password", min_length=5, max_length=30)
 
+class ResetPasswordRequest(BaseModel):
+    email: str = Field(
+        max_length=50,
+        pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+        description="User email",
+    )
+
+class ChangePasswordRequest(BaseModel):
+    token: str
+    password: str = Field(description="User password", min_length=5, max_length=30)
 
 class UserModel(BaseModel):
     id: int
