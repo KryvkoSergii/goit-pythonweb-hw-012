@@ -6,4 +6,5 @@ RUN pip install poetry
 RUN poetry install
 EXPOSE 8000
 RUN chmod +x ./entrypoint.sh
+RUN ls -la
 ENTRYPOINT ["./entrypoint.sh"]

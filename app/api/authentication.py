@@ -16,7 +16,6 @@ from services.hash import verify_password
 from services.auth import create_access_token
 from services.email import send_email, get_email_from_token
 
-
 logger = build_logger("auth", "DEBUG")
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -37,6 +36,31 @@ async def register_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Register a new user.
+
+    This endpoint creates a new user account and sends an email confirmation request.
+
+    :param background_tasks: Background task manager for sending the confirmation email.
+    :type background_tasks: BackgroundTasks
+
+    :param user_data: The user registration data.
+    :type user_data: UserCreate
+
+    :param request: The incoming request object.
+    :type request: Request
+
+    :param db: The database session dependency.
+    :type db: AsyncSession
+
+    :return: The created user object.
+    :rtype: UserModel
+
+    :raises HTTPException:
+        - 409 Conflict: If the username or email is already in use.
+        - 422 Unprocessable Entity: If the request data is invalid.
+        - 500 Internal Server Error: If an unexpected error occurs.
+    """
     user_service = UserService(logger, db)
 
     email_user = await user_service.get_user_by_email(user_data.email)
@@ -73,6 +97,23 @@ async def register_user(
 async def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
 ):
+    """
+    Authenticate a user and generate an access token.
+
+    This endpoint verifies the user's credentials and returns a JWT token if authentication is successful.
+
+    :param form_data: The login credentials submitted via form data.
+    :type form_data: OAuth2PasswordRequestForm
+
+    :param db: The database session dependency.
+    :type db: AsyncSession
+
+    :return: A JWT access token.
+    :rtype: TokenModel
+
+    :raises HTTPException:
+        - 401 Unauthorized: If the credentials are incorrect or the email is not confirmed.
+    """
     user_service = UserService(logger, db)
     user = await user_service.get_user_entity_by_username(form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -100,6 +141,22 @@ async def login_user(
     },
 )
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
+    """
+    Confirm a user's email using a verification token.
+
+    :param token: The email verification token.
+    :type token: str
+
+    :param db: The database session dependency.
+    :type db: AsyncSession
+
+    :return: A confirmation response message.
+    :rtype: ConfirmationResponse
+
+    :raises HTTPException:
+        - 400 Bad Request: If the verification fails.
+        - 422 Unprocessable Entity: If the token is invalid.
+    """
     email = get_email_from_token(token)
     user_service = UserService(logger, db)
     user = await user_service.get_user_entity_by_email(email)
@@ -129,6 +186,30 @@ async def request_email(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Request a new email confirmation.
+
+    This endpoint allows a user to request a new confirmation email if they haven't received one.
+
+    :param body: The request body containing the user's email.
+    :type body: ConfirmationRequest
+
+    :param background_tasks: Background task manager for sending the confirmation email.
+    :type background_tasks: BackgroundTasks
+
+    :param request: The incoming request object.
+    :type request: Request
+
+    :param db: The database session dependency.
+    :type db: AsyncSession
+
+    :return: A confirmation response message.
+    :rtype: ConfirmationResponse
+
+    :raises HTTPException:
+        - 400 Bad Request: If the email is unknown.
+        - 422 Unprocessable Entity: If the request data is invalid.
+    """
     user_service = UserService(logger, db)
     user = await user_service.get_user_entity_by_email(body.email)
 

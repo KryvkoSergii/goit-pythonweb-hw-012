@@ -7,4 +7,3 @@ Dockerfile
 .git
 .gitignore
 poetry.lock
-.dockerignore
