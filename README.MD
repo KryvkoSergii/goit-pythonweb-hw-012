@@ -75,7 +75,30 @@ Rename .env-example into .env
 ```bash
  docker compose -f .\docker-compose.yaml up
 ```
-Scripts 
+
+## Run test
+Run tests
+```bash
+ pytest -v
+```
+Check code coverage
+```bash
+ pytest --cov=app
+```
+Coverage example
+```bash
+Name                         Stmts   Miss  Cover
+------------------------------------------------
+app\errors.py                    4      4     0%
+app\main.py                     47     47     0%
+app\repository\__init__.py       0      0   100%
+app\repository\contacts.py      45      1    98%
+app\repository\models.py        26      0   100%
+app\repository\users.py         27      0   100%
+app\schemas.py                  53      0   100%
+------------------------------------------------
+TOTAL                          202     52    75%
+```
 
 ## How to
 ### Visual Code and Poetry

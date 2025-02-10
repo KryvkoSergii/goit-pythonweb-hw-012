@@ -31,7 +31,7 @@ class ContactsQuery(BaseModel):
     email: Optional[str] = None
     date_from: Optional[date] = None
     date_to: Optional[date] = None
-    user_id: int
+    user_id: Optional[int] = None
 
 
 class ErrorContent(BaseModel):
