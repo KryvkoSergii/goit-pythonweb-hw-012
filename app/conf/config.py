@@ -3,18 +3,18 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_DB: str
+    POSTGRES_USER: str =""
+    POSTGRES_PASSWORD: str =""
+    POSTGRES_HOST: str =""
+    POSTGRES_DB: str =""
 
     JWT_SECRET: str = "pryvit"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_SECONDS: int = 3600
 
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    MAIL_FROM: str
+    MAIL_USERNAME: str =""
+    MAIL_PASSWORD: str =""
+    MAIL_FROM: str =""
     MAIL_PORT: int = 465
     MAIL_SERVER: str = "smtp.meta.ua"
     MAIL_FROM_NAME: str = "Application PoC"
@@ -23,12 +23,12 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
-    CLOUDINARY_NAME: str
-    CLOUDINARY_API_KEY: str
-    CLOUDINARY_API_SECRET: str
+    CLOUDINARY_NAME: str =""
+    CLOUDINARY_API_KEY: str =""
+    CLOUDINARY_API_SECRET: str =""
 
-    REDIS_HOST: str
-    REDIS_PORT: int
+    REDIS_HOST: str =""
+    REDIS_PORT: int = 0
     REDIS_DB: int = 0
 
     model_config = ConfigDict(

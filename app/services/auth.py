@@ -126,6 +126,15 @@ async def get_current_user(
     return user
 
 def get_current_admin_user(current_user: UserModel = Depends(get_current_user)):
+    """
+    Retrieves the currently authenticated admin user.
+    
+    :param current_user: The authenticated user obtained via dependency injection.
+    :type current_user: UserModel
+    :raises HTTPException: If the user is not an admin, a 403 Forbidden error is raised.
+    :return: The authenticated admin user.
+    :rtype: UserModel
+    """
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
     return current_user

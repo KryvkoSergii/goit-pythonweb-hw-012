@@ -141,6 +141,20 @@ def send_reset_password(
     username: str,
     host: str
 ):
+    """
+    Sends a password reset email asynchronously using FastMail.
+    
+    :param background_tasks: Background task manager to send emails asynchronously.
+    :type background_tasks: BackgroundTasks
+    :param logger: Logger instance for logging email operations.
+    :type logger: Logger
+    :param email: The recipient's email address.
+    :type email: str
+    :param username: The username of the recipient.
+    :type username: str
+    :param host: The host URL for generating the password reset link.
+    :type host: str
+    """
     token_verification = create_email_token({"sub": email})
     message = MessageSchema(
         subject="Reset password",
@@ -158,4 +172,5 @@ def send_reset_password(
         fm.send_message, message, template_name="reset_password_email.html"
     )
     logger.debug(
-        f"Reset password for {email} has been placed to the queue")
+        f"Reset password for {email} has been placed to the queue"
+    )

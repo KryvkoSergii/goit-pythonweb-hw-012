@@ -8,7 +8,7 @@
 import sys
 import os
 
-sys.path.append(os.path.abspath("../.."))
+sys.path.append(os.path.abspath('../../app'))
 
 project = 'Contacts App'
 copyright = '2025, Sergii Kryvko'
@@ -21,12 +21,12 @@ release = '0.0.2'
 extensions = ["sphinx.ext.autodoc"]
 
 templates_path = ['_templates']
-exclude_patterns = ['.venv', '__pycache__']
+exclude_patterns = ['.venv', '__pycache__', 'tests']
 
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'nature'
 html_static_path = ['_static']

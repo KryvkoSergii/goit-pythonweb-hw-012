@@ -23,7 +23,6 @@ from services.email import (
     get_email_from_token,
     send_reset_password,
 )
-import traceback
 from pathlib import Path
 
 logger = build_logger("auth", "DEBUG")
@@ -255,41 +254,64 @@ async def reset_password(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Initiates the password reset process by sending an email with a reset link.
+
+    :param body: Request body containing the user's email.
+    :type body: ResetPasswordRequest
+    :param background_tasks: Background task manager to send emails asynchronously.
+    :type background_tasks: BackgroundTasks
+    :param request: The current request instance.
+    :type request: Request
+    :param db: The database session dependency.
+    :type db: AsyncSession
+    :return: A confirmation response message.
+    :rtype: ConfirmationResponse
+    """
     user_service = UserService(logger, db)
     user = await user_service.get_user_by_email(body.email)
     if user:
         send_reset_password(
             background_tasks, logger, user.email, user.username, request.base_url
         )
-    return ConfirmationResponse(message=f"Please check your email for reset password")
+    return ConfirmationResponse(message="Please check your email for reset password")
 
 
 @router.get("/reseted_password/{token}", response_class=HTMLResponse)
 async def get_reseted_password(
     token: str, request: Request, db: AsyncSession = Depends(get_db)
 ):
-    try:
-        email = get_email_from_token(token)
-        print(email)
-        user_service = UserService(logger, db)
-        user = await user_service.get_user_entity_by_email(email)
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="User is not found"
-            )
-        templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
-        return templates.TemplateResponse(
-            "reset_password_page.html",
-            {
-                "request": request,
-                "token": token,
-                "host": request.base_url,
-                "username": user.username,
-            },
+    """
+    Serves the password reset page where users can enter a new password.
+
+    :param token: The password reset token.
+    :type token: str
+    :param request: The current request instance.
+    :type request: Request
+    :param db: The database session dependency.
+    :type db: AsyncSession
+    :return: An HTML response rendering the reset password page.
+    :rtype: HTMLResponse
+    """
+
+    email = get_email_from_token(token)
+    user_service = UserService(logger, db)
+    user = await user_service.get_user_entity_by_email(email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User is not found"
         )
-    except Exception as e:
-        traceback.print_exc()
-        raise e
+    templates = Jinja2Templates(directory=Path(
+        __file__).parent.parent / "templates")
+    return templates.TemplateResponse(
+        "reset_password_page.html",
+        {
+            "request": request,
+            "token": token,
+            "host": request.base_url,
+            "username": user.username,
+        },
+    )
 
 
 @router.post(
@@ -306,6 +328,16 @@ async def perform_reseted_password(
     body: ChangePasswordRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Processes the password reset by updating the user's password.
+
+    :param body: Request body containing the reset token and new password.
+    :type body: ChangePasswordRequest
+    :param db: The database session dependency.
+    :type db: AsyncSession
+    :return: A confirmation response message indicating success.
+    :rtype: ConfirmationResponse
+    """
     email = get_email_from_token(body.token)
     user_service = UserService(logger, db)
     user = await user_service.get_user_entity_by_email(email)

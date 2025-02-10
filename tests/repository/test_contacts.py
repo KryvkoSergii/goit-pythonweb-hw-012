@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from app.repository.contacts import ContactRepository
 from app.repository.models import Contact
 from sqlalchemy.orm import declarative_base
+from datetime import datetime
 
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(DATABASE_URL, echo=True)
@@ -21,7 +22,14 @@ async def contact_repo(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_create_contact(contact_repo):
-    contact = Contact(name="John Doe", email="john.doe@example.com")
+    now = datetime.now()
+    contact = Contact(first_name="John", 
+                      last_name="Doe", 
+                      email="john.doe@example.com",
+                      phone="1234567890",
+                      date=now,
+                      notes="notes",
+                      )
     created_contact = await contact_repo.create(contact)
     
     assert created_contact.id is not None
